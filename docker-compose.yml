@@ -1,0 +1,105 @@
+services:
+  # ------------------------------------------------------------------
+  # 1. INFRAESTRUCTURA (Bases de Datos y Broker)
+  # ------------------------------------------------------------------
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    ports:
+      # Puerto de gestión (opcional para ver la interfaz)
+      - "15672:15672"
+    networks:
+      - msl-net
+
+  # Base de Datos NoSQL para autenticación
+  authdb:
+    image: mongo:latest
+    container_name: auth-mongodb
+    restart: always
+    volumes:
+      - msl_auth_data:/data/db
+    networks:
+      - msl-net
+
+  # Base de Datos SQL (Compartida)
+  postgresdb:
+    image: postgres:18-alpine
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ecommercedb
+    volumes:
+      - msl_postgres_data:/var/lib/postgresql/data
+    networks:
+      - msl-net
+    
+  # ------------------------------------------------------------------
+  # 2. MICROSERVICIOS (.NET)
+  # ------------------------------------------------------------------
+
+  # API 1: Autenticación (Pública)
+  auth-api:
+    container_name: auth-api
+    build:
+      context: ./Auth.Api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    networks:
+      - msl-net
+    depends_on:
+      - authdb
+
+  # API 2: Pedidos (Pública/Protegida)
+  order-api:
+    container_name: order-api
+    build:
+      context: ./Order.Api
+      dockerfile: Dockerfile
+    ports:
+      - "8001:80"
+    networks:
+      - msl-net
+    depends_on:
+      - postgresdb
+      - rabbitmq
+      - auth-api
+
+  # Worker 1: Inventario (Consumidor)
+  inventory-worker:
+    container_name: inventory-worker
+    build:
+      context: ./Inventory.Worker
+      dockerfile: Dockerfile
+    networks:
+      - msl-net
+    # No expone puertos. Solo se comunica internamente con BD y RabbitMQ.
+    depends_on:
+      - postgresdb
+      - rabbitmq
+
+  # Worker 2: Notificaciones (Consumidor)
+  notification-worker:
+    container_name: notification-worker
+    build:
+      context: ./Notification.Worker
+      dockerfile: Dockerfile
+    networks:
+      - msl-net
+    # No expone puertos. Solo se comunica internamente con RabbitMQ.
+    depends_on:
+      - rabbitmq
+
+# ------------------------------------------------------------------
+# 3. REDES Y VOLÚMENES
+# ------------------------------------------------------------------
+networks:
+  msl-net:
+    driver: bridge # Red interna para que los contenedores se vean por nombre
+
+volumes:
+  msl_auth_data:
+  msl_postgres_data:
