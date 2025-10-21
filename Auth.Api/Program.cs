@@ -2,6 +2,7 @@ using Auth.Api.Data;
 using Auth.Api.Endpoints;
 using Auth.Api.Repositories;
 using Auth.Api.Security;
+using Auth.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddSingleton<IMongoDatabaseConnection, MongoDatabaseConnection>
 builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,4 @@
-namespace Auth.Api.Requests;
+namespace Auth.Api.DTOs;
 
 public record UserRegistrationRequest(
     string Username,
