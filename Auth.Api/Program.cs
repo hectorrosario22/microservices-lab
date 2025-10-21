@@ -1,7 +1,7 @@
 using Auth.Api.Data;
-using Auth.Api.Entities;
-using Auth.Api.Requests;
-using Auth.Api.Services;
+using Auth.Api.Endpoints;
+using Auth.Api.Repositories;
+using Auth.Api.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddSingleton<MongoDatabaseConnection>();
+builder.Services.AddSingleton<IMongoDatabaseConnection, MongoDatabaseConnection>();
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 var app = builder.Build();
 
@@ -22,23 +25,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/users", (
-    UserRegistrationRequest request,
-    MongoDatabaseConnection dbConnection) =>
-{
-    // TODO: Validate request
-    var usersCollection = dbConnection.Database?.GetCollection<User>("users");
-    var newUser = new User
-    {
-        Username = request.Username,
-        PasswordHash = PasswordHasher.HashPassword(request.Password),
-        FirstName = request.FirstName,
-        LastName = request.LastName,
-        Email = request.Email,
-    };
-    usersCollection?.InsertOne(newUser);
-    return Results.NoContent();
-})
-.WithName("RegisterUser");
+app.MapUserEndpoints();
 
 app.Run();

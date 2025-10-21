@@ -1,15 +1,8 @@
 using System.Security.Cryptography;
 
-namespace Auth.Api.Services;
+namespace Auth.Api.Security;
 
-public enum PasswordVerificationResult
-{
-    Failed,
-    Success,
-    SuccessRehashNeeded
-}
-
-public static class PasswordHasher
+public class PasswordHasher : IPasswordHasher
 {
     // Always use distinct version IDs for new versions, ideally by incrementing the highest version ID.
     private const byte VersionId1 = 0x01;
@@ -22,7 +15,7 @@ public static class PasswordHasher
         [VersionId1] = new PasswordHasherVersion(HashAlgorithmName.SHA256, SaltSize: 256 / 8, KeySize: 256 / 8, Iterations: 600000),
     };
 
-    public static string HashPassword(string password)
+    public string HashPassword(string password)
     {
         ArgumentNullException.ThrowIfNull(password, nameof(password));
 
@@ -47,7 +40,7 @@ public static class PasswordHasher
         return Convert.ToBase64String(hashedPasswordBytes);
     }
 
-    public static PasswordVerificationResult VerifyHashedPassword(string hashedPassword, string providedPassword)
+    public PasswordVerificationResult VerifyHashedPassword(string hashedPassword, string providedPassword)
     {
         ArgumentNullException.ThrowIfNull(hashedPassword, nameof(hashedPassword));
         ArgumentNullException.ThrowIfNull(providedPassword, nameof(providedPassword));

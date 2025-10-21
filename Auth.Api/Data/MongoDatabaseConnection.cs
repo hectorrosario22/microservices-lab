@@ -2,7 +2,7 @@ using MongoDB.Driver;
 
 namespace Auth.Api.Data;
 
-internal sealed class MongoDatabaseConnection
+internal sealed class MongoDatabaseConnection : IMongoDatabaseConnection
 {
     private readonly IMongoDatabase _database;
 
