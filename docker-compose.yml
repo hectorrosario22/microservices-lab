@@ -17,10 +17,32 @@ services:
     image: mongo:latest
     container_name: auth-mongodb
     restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
     volumes:
       - msl_auth_data:/data/db
     networks:
       - msl-net
+
+  # Interfaz web para MongoDB (opcional)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    restart: always
+    ports:
+      - "8081:8081" 
+    environment:
+      # Usar URL completa de conexión (más compatible)
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@authdb:27017/admin
+      
+      # Autenticación de la UI de Mongo Express (para acceder a localhost:8081)
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    networks:
+      - msl-net
+    depends_on:
+      - authdb
 
   # Base de Datos SQL (Compartida)
   postgresdb:
@@ -28,8 +50,8 @@ services:
     container_name: postgres-db
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: ecommercedb
     volumes:
       - msl_postgres_data:/var/lib/postgresql/data
@@ -48,6 +70,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
     networks:
       - msl-net
     depends_on:

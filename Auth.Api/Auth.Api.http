@@ -1,6 +1,13 @@
 @HostAddress = http://localhost:8000
 
-GET {{HostAddress}}/weatherforecast/
+POST {{HostAddress}}/users/
 Accept: application/json
+Content-Type: application/json
 
-###
+{
+    "username": "johndoe",
+    "password": "SecureP@ssw0rd",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "johndoe@example.com"
+}
