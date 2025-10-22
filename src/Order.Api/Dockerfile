@@ -1,9 +1,13 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["*.csproj", "./"]
-RUN dotnet restore
+
+COPY Order.Api/Order.Api.csproj Order.Api/
+
+RUN dotnet restore Order.Api/Order.Api.csproj
 COPY . .
+
+WORKDIR /src/Order.Api
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Final

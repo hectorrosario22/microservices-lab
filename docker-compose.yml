@@ -77,7 +77,7 @@ services:
   auth-api:
     container_name: auth-api
     build:
-      context: .
+      context: ./src
       dockerfile: Auth.Api/Dockerfile
     ports:
       - "8000:80"
@@ -92,8 +92,8 @@ services:
   order-api:
     container_name: order-api
     build:
-      context: ./Order.Api
-      dockerfile: Dockerfile
+      context: ./src
+      dockerfile: Order.Api/Dockerfile
     ports:
       - "8001:80"
     networks:
@@ -107,8 +107,8 @@ services:
   inventory-worker:
     container_name: inventory-worker
     build:
-      context: ./Inventory.Worker
-      dockerfile: Dockerfile
+      context: ./src
+      dockerfile: Inventory.Worker/Dockerfile
     networks:
       - msl-net
     # No expone puertos. Solo se comunica internamente con BD y RabbitMQ.
@@ -120,7 +120,7 @@ services:
   notification-worker:
     container_name: notification-worker
     build:
-      context: .
+      context: ./src
       dockerfile: Notification.Worker/Dockerfile
     networks:
       - msl-net
