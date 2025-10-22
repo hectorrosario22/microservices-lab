@@ -57,6 +57,17 @@ services:
       - msl_postgres_data:/var/lib/postgresql/data
     networks:
       - msl-net
+
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    ports:
+      # Puerto 1080: Interfaz Web para ver correos
+      - "1080:1080" 
+      # Puerto 1025: Servidor SMTP simulado
+      - "1025:1025" 
+    networks:
+      - msl-net
     
   # ------------------------------------------------------------------
   # 2. MICROSERVICIOS (.NET)
@@ -66,8 +77,8 @@ services:
   auth-api:
     container_name: auth-api
     build:
-      context: ./Auth.Api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Auth.Api/Dockerfile
     ports:
       - "8000:80"
     environment:
@@ -109,8 +120,8 @@ services:
   notification-worker:
     container_name: notification-worker
     build:
-      context: ./Notification.Worker
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Notification.Worker/Dockerfile
     networks:
       - msl-net
     # No expone puertos. Solo se comunica internamente con RabbitMQ.

@@ -1,12 +1,15 @@
 using Auth.Api.DTOs;
 using Auth.Api.Repositories;
 using Auth.Api.Security;
+using EasyNetQ;
+using Events.Contracts;
 
 namespace Auth.Api.Services;
 
 internal sealed class UserService(
     IUserRepository repository,
-    IPasswordHasher passwordHasher) : IUserService
+    IPasswordHasher passwordHasher,
+    IBus bus) : IUserService
 {
     public async Task<Result> RegisterUserAsync(
         UserRegistrationRequest request,
@@ -27,6 +30,14 @@ internal sealed class UserService(
             Email = request.Email,
         };
         await repository.CreateUserAsync(newUser, cancellationToken);
+
+        var message = new UserCreatedMessage(
+            newUser.Id,
+            newUser.Username,
+            newUser.Email,
+            $"{newUser.FirstName} {newUser.LastName}"
+        );
+        await bus.PubSub.PublishAsync(message, cancellationToken);
         return Result.Success();
     }
 }

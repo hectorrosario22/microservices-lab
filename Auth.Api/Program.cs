@@ -3,6 +3,9 @@ using Auth.Api.Endpoints;
 using Auth.Api.Repositories;
 using Auth.Api.Security;
 using Auth.Api.Services;
+using EasyNetQ;
+using EasyNetQ.DI;
+using EasyNetQ.Serialization.SystemTextJson;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +18,11 @@ builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+var rabbitMQConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
+    ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+builder.Services.AddSingleton(RabbitHutch.CreateBus(rabbitMQConnectionString,
+    x => x.Register<ISerializer, SystemTextJsonSerializer>(Lifetime.Singleton)));
 
 var app = builder.Build();
 

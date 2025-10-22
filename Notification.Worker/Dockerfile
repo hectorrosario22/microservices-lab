@@ -1,9 +1,14 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["*.csproj", "./"]
-RUN dotnet restore
+
+COPY Notification.Worker/Notification.Worker.csproj Notification.Worker/
+COPY Events.Contracts/Events.Contracts.csproj Events.Contracts/
+
+RUN dotnet restore Notification.Worker/Notification.Worker.csproj
 COPY . .
+
+WORKDIR /src/Notification.Worker
 RUN dotnet publish -c Release -o /app/publish
 
 # Stage 2: Final
