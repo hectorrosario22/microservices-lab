@@ -1,0 +1,53 @@
+meta {
+  name: Register User - Success
+  type: http
+  seq: 2
+}
+
+post {
+  url: _{{authApiBaseUrl}}/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "username": "{{uniqueUsername}}",
+      "password": "Password123!",
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test.user.{{uniqueUsername}}@mail.com"
+  }
+}
+
+assert {
+  res.status: eq 204
+  res.body: isEmpty
+}
+
+script:pre-request {
+  const timestamp = new Date().getTime();
+  const uniqueUsername = `testuser${timestamp}`;
+  bru.setVar("uniqueUsername", uniqueUsername)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  # 1. [POST] Register User - Success (204 No Content)
+  
+  ## 🎯 Scenario
+  Tests the successful creation of a new user with valid, unique data.
+  
+  ## 🚀 Pre-Request Script
+  This request uses a **Pre-Request Script** to generate a unique `username` based on the current timestamp, preventing **409 Conflict** errors on repeated execution.
+  
+  ## 🔄 Expected Response (Contract)
+  | Status Code | Reason | Details |
+  | :--- | :--- | :--- |
+  | **204 No Content** | **Creation Successful.** The server successfully processed the request, but there is no new resource data to return to the client. | Body must be empty. |
+  
+}

@@ -1,13 +1,14 @@
 using Auth.Api.DTOs;
 using Auth.Api.Services;
+using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 namespace Auth.Api.Endpoints;
 
-public static class UserEndpoints
+public static class AuthEndpoints
 {
-    public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder endpoint)
+    public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoint)
     {
-        endpoint.MapPost("/users", async (
+        endpoint.MapPost("/auth/register", async (
             UserRegistrationRequest request,
             IUserService userService,
             CancellationToken cancellationToken) =>
@@ -29,7 +30,9 @@ public static class UserEndpoints
             }
 
             return Results.NoContent();
-        }).WithName("RegisterUser");
+        })
+        .WithName("RegisterUser")
+        .AddFluentValidationAutoValidation();
 
         return endpoint;
     }

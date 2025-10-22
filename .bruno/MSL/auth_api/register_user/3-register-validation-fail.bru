@@ -1,0 +1,55 @@
+meta {
+  name: Register User - Validation fail
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{authApiBaseUrl}}/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "username": "johndoe",
+      "password": "123",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "johndoe@mail.com"
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body: isJson
+  res.body.errors: isJson
+  res.body.errors["Password"]: isNotEmpty
+  res.body.errors["Password"]: isArray
+}
+
+script:pre-request {
+  const timestamp = new Date().getTime();
+  const uniqueUsername = `testuser_${timestamp}`;
+  bru.setVar("uniqueUsername", uniqueUsername)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  # 3. [POST] Register User - Validation Fail (400 Bad Request)
+  
+  ## 🎯 Scenario
+  Tests the DTO Validation layer. Sends a request body that fails one or more FluentValidation syntax rules (e.g., password too short, invalid email format, missing required field).
+  
+  ## 🛡️ Validation Layer
+  The FluentValidation middleware pipeline rejects the request **before** it reaches the `UserService` logic.
+  
+  ## 🔄 Expected Response (Contract)
+  | Status Code | Reason | Details |
+  | :--- | :--- | :--- |
+  | **400 Bad Request** | The request body is structurally incorrect according to the DTO rules. | Body must contain the standard FluentValidation error structure (an object with an `errors` array). |
+}

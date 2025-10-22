@@ -1,0 +1,44 @@
+meta {
+  name: Register User
+  seq: 1
+}
+
+auth {
+  mode: inherit
+}
+
+docs {
+  # Auth.Api - User Registration Endpoint
+  
+  ## 🎯 Purpose
+  Manages the creation of a new user identity in the system. This endpoint is crucial as it creates the core resource required for all subsequent operations that utilize JWT authorization.
+  
+  ## 🔗 Endpoint Details
+  | Detail | Value |
+  | :--- | :--- |
+  | **Method** | `POST` |
+  | **Path** | `/api/auth/register` |
+  | **Public Access**| YES (No JWT required) |
+  
+  ## 📦 Request Body Schema (DTO)
+  The request body must adhere to the `UserRegistrationRequest` DTO and its associated rules:
+  * `username`: Required, min 3 chars, alphanumeric only. **Must be unique.**
+  * `password`: Required, min 8 chars, must contain upper, lower, digit, and special character.
+  * `email`: Required, must be a valid email format.
+  * `firstName`, `lastName`: Required.
+  
+  ## 🚀 Architectural Flow & Resiliency
+  This endpoint demonstrates the principle of **Asynchronous Decoupling**:
+  1.  **Validation:** The request is checked against DTO and business rules (e.g., username uniqueness).
+  2.  **Persistence:** The new user is securely saved to **MongoDB** (hash and salt).
+  3.  **Messaging:** The `UserService` publishes a non-blocking `UserCreatedMessage` to **RabbitMQ**.
+  4.  **Resilience:** The endpoint immediately returns `204 No Content` while the actual welcome email is handled by the `Notification.Worker` in the background.
+  
+  ## 🛡️ Response Codes Summary
+  | Code | Scenario | Architectural Layer |
+  | :--- | :--- | :--- |
+  | **204 No Content** | Success. | Presentation / Service Layer |
+  | **400 Bad Request**| DTO/Syntax Validation failure (FluentValidation). | Presentation Layer |
+  | **409 Conflict** | Business Rule violation (Username already taken). | Service Layer (Domain Error) |
+  | **500 Internal Error**| Database connection failure or unhandled exception. | Infrastructure Layer |
+}

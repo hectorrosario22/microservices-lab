@@ -6,6 +6,8 @@ using Auth.Api.Services;
 using EasyNetQ;
 using EasyNetQ.DI;
 using EasyNetQ.Serialization.SystemTextJson;
+using FluentValidation;
+using SharpGrip.FluentValidation.AutoValidation.Endpoints.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,9 @@ var rabbitMQConnectionString = builder.Configuration.GetConnectionString("Rabbit
 builder.Services.AddSingleton(RabbitHutch.CreateBus(rabbitMQConnectionString,
     x => x.Register<ISerializer, SystemTextJsonSerializer>(Lifetime.Singleton)));
 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddFluentValidationAutoValidation();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -35,6 +40,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapUserEndpoints();
+app.MapAuthEndpoints();
 
 app.Run();

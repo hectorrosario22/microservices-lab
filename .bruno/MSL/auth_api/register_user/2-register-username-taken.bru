@@ -1,0 +1,77 @@
+meta {
+  name: Register User - Username Taken
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{authApiBaseUrl}}/auth/register
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+      "username": "{{conflictUsername}}",
+      "password": "Password123!",
+      "firstName": "Test",
+      "lastName": "User",
+      "email": "test.user.{{conflictUsername}}@mail.com"
+  }
+}
+
+assert {
+  res.status: eq 409
+  res.body: isJson
+  res.body.message: eq Username is already taken.
+}
+
+script:pre-request {
+  const axios = require("axios");
+  
+  const timestamp = new Date().getTime();
+  const conflictUsername = `conflictuser${timestamp}`;
+  
+  const registrationBody = {
+    username: conflictUsername,
+    password: "Password123!",
+    firstName: "Conflict",
+    lastName: "User",
+    email: `conflict.user.${timestamp}@mail.com`
+  };
+  
+  async function sendRequest() {
+    const url = req.url.replace('{{authApiBaseUrl}}', bru.getEnvVar("authApiBaseUrl"));
+    const response = await axios.post(url, registrationBody, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.warn('Success:', response.status, response.data);
+  }
+  
+  await sendRequest();
+  
+  bru.setVar("conflictUsername", conflictUsername)
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  # 2. [POST] Register User - Conflict (409 Username Taken)
+  
+  ## 🎯 Scenario
+  Tests the **Business Rule** enforcement. Attempts to register a user with a `username` that is already persisted in the MongoDB.
+  
+  ## 🛡️ Validation Layer
+  The `UserService` detects the existing user via the repository and returns a `Result.Failure(..., ErrorCode.Conflict)`. The endpoint translates this specific domain error to HTTP **409**.
+  
+  ## 🔄 Expected Response (Contract)
+  | Status Code | Reason | Details |
+  | :--- | :--- | :--- |
+  | **409 Conflict** | The request violates a server-side uniqueness rule. The resource (username) already exists. | Body must contain a JSON object with a descriptive `Message` field. |
+  
+}

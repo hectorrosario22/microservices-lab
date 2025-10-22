@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "MSL - Microservices Demo",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

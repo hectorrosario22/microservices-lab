@@ -1,0 +1,10 @@
+# Excluir carpetas de binarios y temporales
+**/bin/
+**/obj/
+
+# Excluir carpetas de tests (si no se compilan inmediatamente)
+**/tests/
+
+# Excluir carpetas de VS Code y Git
+.vscode
+.git
