@@ -1,7 +1,7 @@
 using EasyNetQ;
 using EasyNetQ.DI;
 using EasyNetQ.Serialization.SystemTextJson;
-using Notification.Worker;
+using Notification.Worker.Services;
 
 var builder = Host.CreateApplicationBuilder(args);
 
